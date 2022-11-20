@@ -1,23 +1,34 @@
 import {Component} from "react";
-import LocalStorageDB from "../LocalStorageDB";
-import OutletProvider from "../utils";
-import DBObjectHelper from "../DBObjectHelper";
+import MongoDB from "../MongoDB";
+import {OutletProvider} from "../utils";
+import LocalStorageDBHelper from "../LocalStorageDBHelper";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
-import {faPlus, faSun} from '@fortawesome/free-solid-svg-icons';
+import {faPlus} from '@fortawesome/free-solid-svg-icons';
 import SkyLight from "react-skylight";
-import {text} from "@fortawesome/fontawesome-svg-core";
 
 class MessagesClass extends Component {
     constructor(props) {
         super(props);
 
         this.state = {
-            users: LocalStorageDB.getUsers(),
-            messages: LocalStorageDB.getMessages(),
+            loaded: false,
+            users: null,
+            messages: null,
             myUser: this.props.myUser, // Your user for mockup purposes
             selectedUserId: -1,
             darkMode: this.props.darkMode
         }
+
+        this.loadTables();
+    }
+
+    async loadTables() {
+        this.state.users = await MongoDB.getUsers();
+        this.state.messages = await MongoDB.getMessages();
+
+        this.setState({
+            loaded: true
+        });
     }
 
     selectChat(userId, event) {
@@ -28,46 +39,56 @@ class MessagesClass extends Component {
         })
     }
 
-    sendMessage(destUserId, content) {
-        LocalStorageDB.sendMessage(this.props.myUser.id, parseInt(destUserId.toString()), content);
+    async sendMessage(destUserId, content) {
+        await MongoDB.sendMessage(this.props.myUser.id, destUserId, content);
 
         this.setState({
-            messages: LocalStorageDB.getMessages()
+            messages: await MongoDB.getMessages()
         });
     }
 
-    sendMessageFromChat(event) {
+    async sendMessageFromChat(event) {
         event.preventDefault();
 
         let textArea = document.getElementById("message-area");
         let content = textArea.value;
         textArea.value = "";
 
-        this.sendMessage(this.state.selectedUserId, content);
+        await this.sendMessage(this.state.selectedUserId, content);
     }
 
-    sendMessageFromDialog(event) {
+    async sendMessageFromDialog(event) {
         event.preventDefault();
 
         let content = document.getElementById("new-chat-message-area").value;
         let destUserId = document.getElementById("current-message-dest").value;
-        this.sendMessage(destUserId, content);
+
+        await this.sendMessage(destUserId, content);
     }
 
     render() {
+        if(!this.state.loaded) {
+            return (
+                <div className="page-messages">
+                    <h1>Messages</h1>
+                </div>
+            );
+        }
+
         const newChatDialogStyle = {
             backgroundColor: this.state.darkMode ? "#000000" : "#FFFFFF"
         };
 
-        const chats = DBObjectHelper.getChatsUserIdsByUserId(this.state.messages, this.state.myUser.id).map(userId => {
-            const user = DBObjectHelper.getUserById(this.state.users, userId);
-            return <li key={userId}><a href="#" onClick={this.selectChat.bind(this, userId)}>{user.name}</a></li>;
+        const chats = LocalStorageDBHelper.getChatsUserIdsByUserId(this.state.messages, this.state.myUser.id).map(userId => {
+            //console.log(this.props.myUser);
+            const user = LocalStorageDBHelper.getUserById(this.state.users, userId);
+            return <li key={userId}><a href="frontend/src/pages/Messages#" onClick={this.selectChat.bind(this, userId)}>{user.name}</a></li>;
         });
 
         let rowCounter = 0;
 
-        const messages = DBObjectHelper.getMessagesByUsersId(this.state.messages, this.state.myUser.id, this.state.selectedUserId).map(message => {
-            const user = DBObjectHelper.getUserById(this.state.users, message.userIdSource);
+        const messages = LocalStorageDBHelper.getMessagesByUsersId(this.state.messages, this.state.myUser.id, this.state.selectedUserId).map(message => {
+            const user = LocalStorageDBHelper.getUserById(this.state.users, message.userIdSource);
             rowCounter++;
             return <div style={{
                 gridRowStart: rowCounter,

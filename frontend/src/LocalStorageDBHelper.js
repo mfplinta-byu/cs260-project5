@@ -1,4 +1,4 @@
-class DBObjectHelper {
+class LocalStorageDBHelper {
     static getNextIdTable(table) {
         let biggestId = 0;
         if(table.length > 0) {
@@ -21,8 +21,18 @@ class DBObjectHelper {
         return null;
     }
 
-    static isPostLiked(post, userId) {
-        return post.likesByUserId.indexOf(userId) !== -1;
+    static isPostLiked(postLikes, postId, userId) {
+        for(let postLike of postLikes) {
+            if(postLike.postId === postId && postLike.userId === userId) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    static getNumberLikes(postLikes, postId) {
+        return postLikes.filter(postLike => postLike.postId === postId).length;
     }
 
     static getCommentsByPostId(comments, postId) {
@@ -55,4 +65,4 @@ class DBObjectHelper {
     }
 }
 
-export default DBObjectHelper;
+export default LocalStorageDBHelper;

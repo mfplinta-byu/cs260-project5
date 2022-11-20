@@ -6,35 +6,24 @@ import LogoDark from "../logo-dark";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {faKey, faMoon, faSun, faUser} from '@fortawesome/free-solid-svg-icons';
 import SkyLight from "react-skylight";
-import DBObjectHelper from "../DBObjectHelper";
-import LocalStorageDB from "../LocalStorageDB";
+import MongoDBHelper from "../MongoDBHelper";
+import MongoDB from "../MongoDB";
 import Footer from "./Footer";
 
 class Layout extends Component {
-    firstRunUser = 1;
+    firstRunUsername = 'me';
 
     constructor(props) {
         super(props);
 
-        let users = LocalStorageDB.getUsers();
-
         this.state = {
-            users: users,
+            loaded: false,
+            users: null,
             darkMode: false,
-            myUser: DBObjectHelper.getUserById(users, this.firstRunUser),
+            myUser: null,
             userChanged: false,
             navIndex: -1,
             randomKey: 0
-        }
-
-        // Simulated user
-        let simulatedUser = localStorage.getItem('currentUser');
-
-        if(simulatedUser == null) {
-            localStorage.setItem('currentUser', '1');
-        }
-        else if(simulatedUser !== '1') {
-            this.state.myUser = DBObjectHelper.getUserById(users, parseInt(simulatedUser));
         }
 
         // Dark mode
@@ -57,6 +46,29 @@ class Layout extends Component {
         } else {
             this.state.navIndex = 0;
         }
+
+        this.loadTables();
+    }
+
+    async loadTables() {
+        let users = await MongoDB.getUsers();
+
+        this.state.users = users;
+
+        // Simulated user
+        let simulatedUser = localStorage.getItem('currentUser');
+
+        if(simulatedUser == null) {
+            localStorage.setItem('currentUser', this.firstRunUsername);
+            this.state.myUser = await MongoDB.getUserByUsername(this.firstRunUsername);
+        }
+        else {
+            this.state.myUser = await MongoDB.getUserByUsername(simulatedUser);
+        }
+
+        this.setState({
+            loaded: true
+        });
     }
 
     changeColorMode(event) {
@@ -71,30 +83,18 @@ class Layout extends Component {
         });
     }
 
-    recreateDatabase(event) {
+    async recreateDatabase(event) {
         event.preventDefault();
 
-        LocalStorageDB.recreateDefaultTables();
-        localStorage.setItem('currentUser', this.firstRunUser.toString())
+        await MongoDB.recreateDefaultTables();
+        localStorage.setItem('currentUser', this.firstRunUsername.toString())
 
-        let users = LocalStorageDB.getUsers();
+        let users = MongoDB.getUsers();
         this.setState({
             users: users,
-            myUser: DBObjectHelper.getUserById(users, this.firstRunUser),
+            myUser: MongoDBHelper.getUserById(users, this.firstRunUsername),
             userChanged: true
         });
-    }
-
-    updateUser(event) {
-        event.preventDefault();
-        let userId = document.getElementById("current-user").value;
-
-        localStorage.setItem('currentUser', userId.toString());
-
-        this.setState({
-            userChanged: true,
-            myUser: DBObjectHelper.getUserById(this.state.users, userId)
-        })
     }
 
     updateNavColor(navIndex, event) {
@@ -107,10 +107,6 @@ class Layout extends Component {
         let userSettingsDialogStyle = {
             backgroundColor: this.state.darkMode ? "#000000" : "#FFFFFF"
         };
-
-        const users = LocalStorageDB.getUsers().map((user) => {
-            return <option key={user.id} value={user.id}>{user.name}</option>;
-        })
 
         return (
             <div id="layout" className="layout" data-theme={this.state.darkMode ? 'dark' : 'light'}>
@@ -136,13 +132,7 @@ class Layout extends Component {
                 </div>
                 <SkyLight dialogStyles={userSettingsDialogStyle} hideOnOverlayClicked ref={ref => this.userSettingsDialog = ref} title="User settings">
                     <br/>
-                    <p>This section allows you to become another user or recreate the database for testing purposes.</p>
-                    <br/>
                     <form className="user-settings-form">
-                        <label>Current user: </label>
-                        <select id="current-user" onChange={this.updateUser.bind(this)} value={this.state.userChanged ? "" : this.state.myUser.id}>
-                            {users}
-                        </select>
                         <br/>
                         <button id="recreate-database" onClick={this.recreateDatabase.bind(this)}>Recreate database</button>
                         <Link to="/"><FontAwesomeIcon icon={faKey}/> Log out</Link>
@@ -154,10 +144,10 @@ class Layout extends Component {
                     </div>
                 </SkyLight>
 
-                <Outlet key={this.state.randomKey} context={{
+                {this.state.loaded ? <Outlet key={this.state.randomKey} context={{
                     myUser: this.state.myUser,
                     darkMode: this.state.darkMode
-                }}/>
+                }}/> : <></>}
 
                 <Footer />
             </div>

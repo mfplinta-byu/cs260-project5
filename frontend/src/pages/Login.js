@@ -27,7 +27,7 @@ class Login extends Component {
                     <br/>
                     <p>Lightweight and privacy-focused social network and direct messaging platform for evolving needs in security.</p>
                     <br/>
-                    <p>Note that this mockup requires Javascript and Local Storage enabled in your browser.</p>
+                    <p>Note that this mockup requires Javascript and the underlying backend to be running.</p>
                 </div>
                 <Footer />
             </div>

@@ -108,6 +108,14 @@ class Layout extends Component {
             backgroundColor: this.state.darkMode ? "#000000" : "#FFFFFF"
         };
 
+        if(!this.state.isUserValid) {
+            return (
+                <div>
+                    <p>The user is not logged in. <Link to="/">Return to login page</Link></p>
+                </div>
+            )
+        }
+
         return (
             <div id="layout" className="layout" data-theme={this.state.darkMode ? 'dark' : 'light'}>
                 <div className="main-menu">

@@ -1,4 +1,3 @@
-import MongoDBHelper from "./MongoDBHelper";
 import axios from "axios";
 import {delay} from "./utils";
 
@@ -29,7 +28,8 @@ class MongoDB {
                 },
                 {
                     username: 'lorem',
-                    name: 'Lorem Ipsum'
+                    name: 'Lorem Ipsum',
+                    password: 'default'
                 }
             ]) {
               await axios.post('/api/users', user);
@@ -139,6 +139,14 @@ class MongoDB {
         const user = (await axios.get(`/api/users/username/${username}`)).data;
 
         return user.length !== 0 ? user[0] : null;
+    }
+
+    static async isLoginValid(username, password) {
+        if(username.length === 0 || password.length === 0) {
+            return false;
+        }
+
+        return (await axios.get(`/api/users/auth/${username}/${password}`)).data;
     }
 
     // Posts table methods

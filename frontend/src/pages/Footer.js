@@ -1,7 +1,7 @@
 const Footer = () => {
     return <footer>
         <p>Repository: <a target="_blank"
-                          href="https://github.com/mfplinta-byu/cs260-project4">https://github.com/mfplinta-byu/cs260-project4</a>
+                          href="https://github.com/mfplinta-byu/cs260-project5">https://github.com/mfplinta-byu/cs260-project5</a>
         </p>
     </footer>;
 }

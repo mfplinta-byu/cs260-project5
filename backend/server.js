@@ -96,6 +96,22 @@ app.get('/api/users/username/:username', async (req, res) => {
     }
 });
 
+app.get('/api/users/auth/:username/:password', async (req, res) => {
+    try {
+        let user = await User.find({
+            username: req.params.username
+        });
+
+        if(user.length === 0)
+            res.send(false);
+        else
+            res.send(user[0].password === crypto.createHash('sha256').update(req.params.password).digest('hex'));
+    } catch(error) {
+        console.log(error);
+        res.sendStatus(500);
+    }
+})
+
 app.get('/api/posts', async (req, res) => {
     try {
         let posts = await Post.find().sort({'date': -1});
@@ -191,7 +207,7 @@ app.post('/api/users', async (req, res) => {
        id: crypto.randomUUID(),
        username: req.body.username,
        name: req.body.name,
-       password: req.body.password
+       password: crypto.createHash('sha256').update(req.body.password).digest('hex')
    });
 
    try {

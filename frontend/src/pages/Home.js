@@ -88,7 +88,6 @@ class HomeClass extends Component {
 
         const posts = this.state.posts.map((post) => {
             let user = MongoDBHelper.getUserById(this.state.users, post.userId);
-            console.log(post.userId)
 
             let commentsList = MongoDBHelper.getCommentsByPostId(this.state.comments, post.id)
 

@@ -1,7 +1,7 @@
- import LocalStorageDBHelper from "./LocalStorageDBHelper";
- import axios from "axios";
+import LocalStorageDBHelper from "./LocalStorageDBHelper";
+import axios from "axios";
 
-class LocalStorageDB {
+class LocalStorageDB {z
     static async createDefaultTables() {
         // Users table
         if(localStorage.getItem('users') == null) {

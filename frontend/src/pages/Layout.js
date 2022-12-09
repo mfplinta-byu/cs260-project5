@@ -1,4 +1,4 @@
-import {Outlet, Link, useLocation} from "react-router-dom";
+import {Link, Outlet} from "react-router-dom";
 import '../App.css'
 import LogoLight from "../logo-light";
 import {Component} from "react";
@@ -9,6 +9,7 @@ import SkyLight from "react-skylight";
 import MongoDBHelper from "../MongoDBHelper";
 import MongoDB from "../MongoDB";
 import Footer from "./Footer";
+import {getCookie} from "../utils";
 
 class Layout extends Component {
     firstRunUsername = 'me';
@@ -19,6 +20,7 @@ class Layout extends Component {
         this.state = {
             loaded: false,
             users: null,
+            isUserValid: false,
             darkMode: false,
             myUser: null,
             userChanged: false,
@@ -51,19 +53,17 @@ class Layout extends Component {
     }
 
     async loadTables() {
-        let users = await MongoDB.getUsers();
-
-        this.state.users = users;
+        this.state.users = await MongoDB.getUsers();
 
         // Simulated user
-        let simulatedUser = localStorage.getItem('currentUser');
+        let simulatedUser = getCookie('username');
 
-        if(simulatedUser == null) {
-            localStorage.setItem('currentUser', this.firstRunUsername);
-            this.state.myUser = await MongoDB.getUserByUsername(this.firstRunUsername);
+        if(simulatedUser != null) {
+            this.state.myUser = await MongoDB.getUserByUsername(simulatedUser);
+            this.state.isUserValid = true;
         }
         else {
-            this.state.myUser = await MongoDB.getUserByUsername(simulatedUser);
+            this.state.isUserValid = false;
         }
 
         this.setState({

@@ -1,5 +1,5 @@
 const PORT = 2999;
-const DB_URL = 'mongodb://localhost:27017/chitchat';
+const DB_URL = 'mongodb://db:27017/chitchat';
 
 const mongoose = require('mongoose');
 const express = require('express');

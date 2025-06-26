@@ -1,4 +1,8 @@
 services:
+  db:
+    image: docker.io/library/mongo:latest
+    expose:
+      - 27017
   backend:
     image: docker.io/library/node:latest
     volumes:
@@ -7,8 +11,8 @@ services:
       sh -c "cd /app &&
              npm install &&
              npm start"
-    ports:
-      - 2999:2999
+    expose:
+      - 2999
   frontend:
     image: docker.io/library/node:latest
     volumes:
@@ -19,7 +23,3 @@ services:
              npm start"
     ports:
       - 3000:3000
-  db:
-    image: docker.io/library/mongo:latest
-    ports:
-      - 27017:27017
